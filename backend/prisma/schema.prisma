@@ -1,0 +1,110 @@
+datasource db {
+  provider = "postgresql"
+  url      = "postgresql://postgres:postgres@localhost:5432/afs"
+}
+
+generator prisma_client {
+  provider = "prisma-client-js"
+}
+
+model Fare {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  current_fare  Float
+  pervious_fare Float
+}
+
+model Routes {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  status              String  @default("active")
+  name                String?
+  description         String?
+  location_name_start String
+  location_name_end   String
+  location_gps_start  String
+  location_gps_end    String
+  total_distance      Int
+
+  Vehicles Vehicles[]
+}
+
+model Vehicles {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  status             String  @default("active")
+  name               String?
+  description        String?
+  license_plate      String  @unique
+  passenger_capacity Int
+
+  routes   Routes? @relation(fields: [route_id], references: [id])
+  route_id String?
+
+  Pos Pos?
+}
+
+model Users {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  status   String @default("active")
+  userType String @default("passenger")
+  name     String
+  email    String @unique
+
+  Cards Cards?
+}
+
+model Cards {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  status           String @default("active")
+  card_serial_id   String @unique
+  current_balance  Float
+  previous_balance Float
+
+  user    Users?  @relation(fields: [user_id], references: [id])
+  user_id String? @unique
+
+  History History[]
+}
+
+model Pos {
+  id         String   @id @default(cuid())
+  created_at DateTime @default(now())
+  update_at  DateTime @updatedAt
+
+  status      String  @default("active")
+  name        String
+  description String?
+
+  vehicle    Vehicles @relation(fields: [vehicle_id], references: [id])
+  vehicle_id String   @unique
+}
+
+model History {
+  id        String   @id @default(cuid())
+  create_at DateTime @default(now())
+  update_at DateTime @updatedAt
+
+  gps_coordinate_start String
+  gps_coordinate_end   String
+  distance_traveled    Int
+
+  card    Cards  @relation(fields: [card_id], references: [id])
+  card_id String
+
+  current_card_balance Int
+  current_fare         Int
+  total_cost           Int
+}
